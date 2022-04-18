@@ -50,3 +50,10 @@
 /server/npm-debug.log*
 /server/yarn-debug.log*
 /server/yarn-error.log*
+
+#local
+.gitignore
+password.txt
+
+#sql
+/server/sql
