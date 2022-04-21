@@ -44,7 +44,7 @@
 /server/.env.development.local
 /server/.env.test.local
 /server/.env.production.local
-/server/.env.dev
+/server/.env.development
 /server/.env.production
 
 /server/npm-debug.log*
@@ -54,6 +54,7 @@
 #local
 .gitignore
 password.txt
+/temp
 
 #sql
 /server/sql
