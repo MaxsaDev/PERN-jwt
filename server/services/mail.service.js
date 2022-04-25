@@ -23,7 +23,7 @@ class MailService {
       html:
       `
       <div>
-        <h1>Для активації вашого акаунту в застосунку ${process.env.APP_NAME} перейдите по ссылке</h1>
+        <h1>Для активації вашого акаунту в застосунку ${process.env.APP_NAME} переходьте за посиланням</h1>
         <a href="${link}">${link}</a>
       </div>
       `
