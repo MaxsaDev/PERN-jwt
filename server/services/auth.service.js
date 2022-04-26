@@ -40,14 +40,33 @@ class AuthService {
 
   }
 
-  async login(){
+  async login(email, password){
 
+    let sql;
+    sql = 'SELECT * FROM gjsm.mxuser.mxuser WHERE email = $1';
+    const user = await db.query(sql, [email]);
+    if (user.rowCount === 0){
+      throw ApiError.forbidden(`Користувач з поштовою скринькою ${email} не знайдений`);
+    }
 
+    const isPassEquals = await bcrypt.compare(password, user.rows[0].password);
+    if (!isPassEquals){
+      throw ApiError.forbidden(`Логін або пароль не вірний`);
+    }
+
+    const userDto = new UserDto(user.rows[0]);
+    const tokens = tokenService.generateTokens({...userDto});
+    await tokenService.saveToken(userDto.id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user: userDto
+    }
   }
 
-  async logout(){
-
-
+  async logout(refreshToken){
+    const token = await tokenService.removeToken(refreshToken)
+    return token;
   }
 
   async activate(activateLink){
@@ -56,7 +75,7 @@ class AuthService {
     sql = 'SELECT * FROM gjsm.mxuser.mxuser_system WHERE activationlink = $1';
     result = await db.query(sql, [activateLink]);
     if(result.rows.count === 0) {
-      throw new Error('Некоректне посилання для активації');
+      throw ApiError.forbidden('Некоректне посилання для активації');
     }
 
     sql = 'UPDATE gjsm.mxuser.mxuser_system SET is_activated = true WHERE mxuser = $1 RETURNING *';
@@ -66,9 +85,27 @@ class AuthService {
     }
   }
 
-  async refresh(){
+  async refresh(refreshToken){
+    if(!refreshToken){
+      throw ApiError.UnauthorizedError();
+    }
+    const userData = tokenService.validateRefreshToken(refreshToken);
+    const tokenFromDB = await tokenService.findToken(refreshToken);
+    if (!userData || !tokenFromDB) {
+      throw ApiError.UnauthorizedError();
+    }
 
+    const sql = 'SELECT * FROM gjsm.mxuser.mxuser WHERE id = $1';
+    const user = await db.query(sql, [userData.rows[0].mxuser]);
 
+    const userDto = new UserDto(user.rows[0]);
+    const tokens = tokenService.generateTokens({...userDto});
+    await tokenService.saveToken(userDto.id, tokens.refreshToken);
+
+    return {
+      ...tokens,
+      user: userDto
+    }
   }
 
   async check(){

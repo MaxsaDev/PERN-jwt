@@ -6,6 +6,7 @@
 //npm install --save pg pg-hstore
 //npm i jsonwebtoken bcrypt uuid
 //npm i nodemailer
+//npm i express-validator
 
 
 //npm i jwt bcryptjs
@@ -42,6 +43,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
+
 app.use('/api', router);
 
 

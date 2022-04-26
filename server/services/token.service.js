@@ -25,6 +25,36 @@ class TokenService {
     return token;
   }
 
+  async removeToken(refreshToken){
+    const sql = 'DELETE FROM gjsm.mxuser.mxtoken WHERE refresh_token = $1 RETURNING *';
+    const token = await db.query(sql, [refreshToken]);
+    return token;
+  }
+
+  async findToken(refreshToken){
+    const sql = 'SELECT * FROM gjsm.mxuser.mxtoken WHERE refresh_token = $1';
+    const token = await db.query(sql, [refreshToken]);
+    return token;
+  }
+
+  validateAccessToken(token){
+    try {
+      const userData = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      return userData;
+    }catch(e){
+      return null;
+    }
+  }
+
+  validateRefreshToken(token){
+    try {
+      const userData = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+      return userData;
+    }catch(e){
+      return null;
+    }
+  }
+
 }
 
 module.exports = new TokenService();
