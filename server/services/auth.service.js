@@ -19,12 +19,6 @@ class AuthService {
     const hashPassword = await bcrypt.hash(password, 7);
     sql = `INSERT INTO gjsm.mxuser.mxuser (email, password) VALUES ($1, $2) RETURNING *`;
     const user = await db.query(sql, [email, hashPassword]);
-
-    console.log('----------------');
-    console.log('user', user.rows);
-    console.log('user.id', user.rows[0].id);
-    console.log('----------------');
-
     const userDto = new UserDto(user.rows[0]);
     const activationLink = uuid.v4();
     await userSystemService.insertActivationLink(userDto.id, activationLink);
@@ -89,6 +83,7 @@ class AuthService {
     if(!refreshToken){
       throw ApiError.UnauthorizedError();
     }
+
     const userData = tokenService.validateRefreshToken(refreshToken);
     const tokenFromDB = await tokenService.findToken(refreshToken);
     if (!userData || !tokenFromDB) {
@@ -96,7 +91,7 @@ class AuthService {
     }
 
     const sql = 'SELECT * FROM gjsm.mxuser.mxuser WHERE id = $1';
-    const user = await db.query(sql, [userData.rows[0].mxuser]);
+    const user = await db.query(sql, [userData.id]);
 
     const userDto = new UserDto(user.rows[0]);
     const tokens = tokenService.generateTokens({...userDto});

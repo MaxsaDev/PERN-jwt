@@ -5,6 +5,7 @@
 //npm i dotenv cross-env
 //npm install --save pg pg-hstore
 //npm i jsonwebtoken bcrypt uuid
+//npm i jsonwebtoken bcryptjs uuid
 //npm i nodemailer
 //npm i express-validator
 
