@@ -22,7 +22,7 @@ class AuthService {
     const userDto = new UserDto(user.rows[0]);
     const activationLink = uuid.v4();
     await userSystemService.insertActivationLink(userDto.id, activationLink);
-    await mailService.sendActivationMail(email, `${process.env.API_URL}/api/activate/${activationLink}`);
+    await mailService.sendActivationMail(email, `${process.env.API_URL}/api/auth/activate/${activationLink}`);
 
     const tokens = tokenService.generateTokens({...userDto});
     await tokenService.saveToken(userDto.id, tokens.refreshToken);
@@ -37,8 +37,20 @@ class AuthService {
   async login(email, password){
 
     let sql;
-    sql = 'SELECT * FROM gjsm.mxuser.mxuser WHERE email = $1';
+    // sql = 'SELECT * FROM gjsm.mxuser.mxuser WHERE email = $1';
+    sql = `
+      SELECT 
+        mxuser.id,
+        mxuser.email,
+        mxuser.password,
+        mxuser.role,
+        mxusersys.is_activated
+      FROM gjsm.mxuser.mxuser
+        LEFT OUTER JOIN gjsm.mxuser.mxuser_system AS mxusersys ON (mxuser.id = mxusersys.mxuser)
+        WHERE mxuser.email = $1;
+    `;
     const user = await db.query(sql, [email]);
+
     if (user.rowCount === 0){
       throw ApiError.forbidden(`Користувач з поштовою скринькою ${email} не знайдений`);
     }
@@ -90,7 +102,18 @@ class AuthService {
       throw ApiError.UnauthorizedError();
     }
 
-    const sql = 'SELECT * FROM gjsm.mxuser.mxuser WHERE id = $1';
+    // const sql = 'SELECT * FROM gjsm.mxuser.mxuser WHERE id = $1';
+    const sql = `
+      SELECT 
+        mxuser.id,
+        mxuser.email,
+        mxuser.password,
+        mxuser.role,
+        mxusersys.is_activated
+      FROM gjsm.mxuser.mxuser
+        LEFT OUTER JOIN gjsm.mxuser.mxuser_system AS mxusersys ON (mxuser.id = mxusersys.mxuser)
+        WHERE mxuser.id = $1;
+    `;
     const user = await db.query(sql, [userData.id]);
 
     const userDto = new UserDto(user.rows[0]);
